@@ -1,21 +1,25 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using VetClinic;
+using VetClinic.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<VetClinicContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("VetClinicContext")));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    SeedData.Initialize(services);
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
